@@ -1,0 +1,42 @@
+#include "widget.h"
+#include "ui_widget.h"
+
+Widget::Widget(QWidget *parent)
+    : QWidget(parent)
+    , ui(new Ui::Widget)
+{
+    ui->setupUi(this);
+}
+
+Widget::~Widget()
+{
+    delete ui;
+}
+
+
+void Widget::on_pushButton_clicked()
+{
+    QString path=QFileDialog::getOpenFileName(this,"open","../",
+                                              "Images (*.png *.xpm *.jpg);;"
+                                              "Text files (*.txt);;"
+                                              "XML files (*.xml);;"
+                                               "souce (*.cpp *.h);;all (*.*)"
+                                              );
+    if(path.isEmpty()==false)
+    {
+        //文件对象
+        QFile file(path);
+
+        //打开文件，只读方式
+        bool isOK=file.open(QIODevice::ReadOnly);
+        if(isOK==true)
+        {
+            //读文件，默认只识别utf8编码
+            QByteArray array=file.readAll();
+            //显示到编辑区
+            ui->textEdit->setText(array);
+            // ui->textEdit->setText(QString(array));
+
+        }
+    }
+}

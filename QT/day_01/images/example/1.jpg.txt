@@ -1,0 +1,1 @@
+C:/practice/QT/day_01/images/example/1.jpg x=271,y=157,w=124,h=154
