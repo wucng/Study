@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>$Title$</title>
+    <head>
+        <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js">
+        </script>
+    
+        <script language=javascript>
+            function showVideo_1()
+            {   
+                //*
+                urlString="http://192.168.11.35:8080/show";                 
+                var txt=$.ajax({
+                    url:urlString,
+                    type:'GET',
+                    dataType: 'json',  // 请求方式为jsonp
+                    async: false,
+                    success:function(data){
+                        alert(data);
+                    }
+                });
+                //*/
+                // or
+                /*
+                var txt=$.get("http://192.168.11.35:8080/show",function(data,status){
+                        alert("Data: " + data + "\nStatus: " + status);
+                    });
+                //*/
+                var i=0;
+                var showVideo=setInterval(function()
+                {   
+                    // var adiv=document.getElementById('img');
+                    var images = eval(txt.responseText);//解析后台请求的json数据（将字符串格式转成json格式）(放在函数外面报错 ？？？)
+                    if(i==images.length)
+                    {
+                        i=0;
+                    }
+                    // adiv.src=images[i];
+                    //or
+                    $('#img').attr('src',images[i]);
+                    i++;
+                },1000) // 设置1s间隔
+
+            }
+            
+        </script>
+
+        <script type="text/javascript">
+            var int;
+            function showVideo()
+            {
+                var but_video=document.getElementById('video');
+                
+                if (but_video.textContent=='showVideo')
+                {   
+                    but_video.textContent='stop';
+                    var xmlhttp;
+                    if (window.XMLHttpRequest)
+                    {// code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlhttp=new XMLHttpRequest();
+                    }
+                    else
+                    {// code for IE6, IE5
+                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                    }
+                    xmlhttp.onreadystatechange=function()
+                    {
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200)
+                        {
+                            // document.getElementById("img").src=xmlhttp.responseText;
+                            var i=0;
+                            int=setInterval(function()
+                            {   
+                                var adiv=document.getElementById('img');
+                                var images = eval(xmlhttp.responseText);//解析后台请求的json数据（将字符串格式转成json格式）(放在函数外面报错 ？？？)
+                                if(i==images.length)
+                                {
+                                    i=0;
+                                }
+                                adiv.src=images[i];
+                                i++;
+                            },1000) // 设置1s间隔
+                        }
+                    }
+                    xmlhttp.open("GET","http://192.168.11.35:8080/show",true);
+                    xmlhttp.send();
+                } 
+                else
+                {
+                    but_video.textContent='showVideo';
+                    window.clearInterval(int); //终止 setInterval 事件
+                }
+            }
+        </script>
+
+        <script type="text/javascript">
+            function showimages()
+            {
+                var but_img=document.getElementById('image');
+                if (but_img.textContent=='showimages')
+                {   
+                    but_img.textContent='clear';
+                    var xmlhttp;
+                    if (window.XMLHttpRequest)
+                    {// code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlhttp=new XMLHttpRequest();
+                    }
+                    else
+                    {// code for IE6, IE5
+                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                    }
+                    xmlhttp.onreadystatechange=function()
+                    {
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200)
+                        {
+                            // document.getElementById("img").src=xmlhttp.responseText;
+                            var i=0;
+                            var images = eval(xmlhttp.responseText);//解析后台请求的json数据（将字符串格式转成json格式）(放在函数外面报错 ？？？)
+                            // var adiv=document.getElementById('img');
+                            // adiv.src=images[i];
+                            for(var i in images)
+                            {
+                                // $('#div1').appendChild($.createElement('img').attr('src',images[i],'height','200','width','200'));
+                            
+                            var img=document.createElement('img');
+                            img.src=images[i];
+                            img.height='200';
+                            img.width='200';
+                            img.border='5';
+                            img.onclick=function(){document.getElementById('img').src=this.src};
+                            document.getElementById("div1").appendChild(img);
+                            }
+                        }
+                    }
+                    xmlhttp.open("GET","http://192.168.11.35:8080/show",true);
+                    xmlhttp.send();  
+                }
+                else
+                {
+                    but_img.textContent='showimages';
+                    var div=document.getElementById("div1");
+                    // var childs=div.childNodes 
+                    while(div.childNodes.length!=0)
+                    {
+                        div.removeChild(div.childNodes[0]);
+                    }
+                    //or
+                    /*                  
+                    while(div.hasChildNodes()) //当div下还存在子节点时 循环继续  
+                    {  
+                        div.removeChild(div.firstChild);  
+                    }  
+                    */
+
+                    // console.log(div_.childNodes);
+                }
+            }
+        </script>
+
+        <script>
+            var image = '';
+            var name='';
+
+            function selectImage(file){
+            if(!file.files || !file.files[0]){
+                return;
+            }
+            //判断类型是不是图片    
+            if(!/image\/\w+/.test(file.files[0].type)){       
+                alert("请确保文件为图像类型");     
+                return false;     
+            }     
+            
+            var type=file.files[0].type.split('/')[1].toLowerCase();//判断是否图片类型
+            if(type=="bmp"||type=="tiff"||type=="gif"||type=="jpeg"||
+            type=="exif"||type=="png"||type=="raw"||type=="jpg"||type=="JPG"){
+
+                if(file.files[0].size>10*1024*1024){
+
+                alert("请上传一张小于10M的照片哦！");//这里是页面得提示语，自行做一个弹框
+                return;
+                }
+            }
+
+
+            name=file.files[0].name;
+            // console.log(name);
+            var reader = new FileReader();
+            reader.onload = function(evt){
+            document.getElementById('img').src = evt.target.result;
+            image = evt.target.result.split(',')[1];//转成base64 传输到后台
+            }
+            reader.readAsDataURL(file.files[0]);
+            }
+            // console.log(image);
+            // ----------------------------------------------//
+            function uploadImage(){  
+                //方法一 
+
+                $.ajax({               
+                    type:'POST',               
+                    url: 'http://192.168.199.113:7001/run',
+                    data: {img64:image,name:name},
+                    async: false,               
+                    dataType: 'json', 
+                    //jsonp:'callback',        
+                    success: function(data){
+                    if(data.success){  
+                        // var jdata = JSON.stringify(JSON.parse(data), null, 4); 
+                        var jdata = JSON.stringify(data,null, 4);
+                        // console.log(jdata);//这是在输出框的json数据确实被格式话了
+                                        
+                        //alert('上传成功');
+                        // alert(data.name+"\n"+data.score);
+                        document.getElementById('result').innerText=jdata;
+                    
+                    }else{
+                    alert('上传失败');
+                    }                   
+                    },                
+                    error: function(err){             
+                    alert('网络故障');
+                    }               
+                });
+
+                
+                //方法二
+                /*
+                $.post("http://192.168.199.113:7001/run",
+                {img:image,name:name},
+                function(data,status){
+                alert("数据：" + data.success  + "\n状态：" + status);
+                });
+                */
+
+                /*
+                //方法三（这个post方法有点问题）
+                var xmlhttp;
+                if (window.XMLHttpRequest)
+                {   // code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlhttp=new XMLHttpRequest();
+                }
+                else
+                {   // code for IE6, IE5
+                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                    xmlhttp.onreadystatechange=function()
+                {
+                if (xmlhttp.readyState==4 && xmlhttp.status==200)
+                    {
+                        // document.getElementById("myDiv").innerHTML=xmlhttp.responseText;
+                        alert(xmlhttp.responseText);
+                    }
+                }
+                xmlhttp.open("POST","http://192.168.199.113:7001/run",true);
+                xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+                xmlhttp.send("img="+image+"&name="+name); //
+
+                // xmlhttp.setRequestHeader("Content-Type", "application/json");
+                // xmlhttp.send(JSON.stringify({img:image,name:name}));
+
+                // var jsondata=JSON.stringify({img:image,name:name})
+                // xmlhttp.send(jsondata);
+                
+                // console.log(image);
+                */
+            }
+       </script>
+    </head>
+</head>
+<body>
+<div>
+    <button id="video" onclick="showVideo()">showVideo</button>
+    <button id="image" onclick="showimages()">showimages</button>
+    <br>
+
+    <div style="width: 300px;height: auto;float: left;display: inline;">
+        <img id="img"  height="300" width="250"/>
+        <br>
+        <input type="file"onchange="selectImage(this);"/>
+        <br>
+        <input type="button"onclick="uploadImage();"value="提交"/>
+    </div>
+    <div style="width: 300px;height: auto;float: left;display: inline;">
+        <p id="result" class="result"> print result </p>
+    </div>
+    
+        
+    <canvas></canvas>
+</div>
+
+
+<div id='div1'>
+</div>
+
+</body>
+</html>
