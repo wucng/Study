@@ -3,6 +3,7 @@
 """
 import numpy as np
 import tensorflow as tf
+import time
 
 # 1、加载npz文件
 parmas=np.load("models/tf_args.npz")
@@ -43,10 +44,13 @@ def model(parmas,img):
     # softmax
     return softmax(x)
 
+start=time.time()
 x_train, y_train, x_test, y_test=process_dataset()
 print(np.argmax(model(parmas,x_test[:20]),1))
 print(y_test[:20])
+print(time.time()-start)
 """
 [7 2 1 0 4 1 4 9 6 9 0 6 9 0 1 5 9 7 3 4]
 [7 2 1 0 4 1 4 9 5 9 0 6 9 0 1 5 9 7 3 4]
+0.4395
 """

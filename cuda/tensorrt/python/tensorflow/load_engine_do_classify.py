@@ -1,6 +1,7 @@
 from random import randint
 from PIL import Image
 import numpy as np
+import time
 
 import pycuda.driver as cuda
 # This import causes pycuda to automatically manage CUDA context creation and cleanup.
@@ -78,4 +79,8 @@ def main():
     print("\ninference success!\n")
 
 if __name__ == '__main__':
+    start=time.time()
     main()
+    print(time.time()-start)
+
+    '''2.447'''

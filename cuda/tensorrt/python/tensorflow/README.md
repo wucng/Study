@@ -17,6 +17,9 @@ convert-to-uff models/lenet5.pb
 # or 查看 xxx/uff/bin/convert_to_uff.py文件改写成脚本
 cp /usr/lib/python3.5/site-packages/uff/bin/convert_to_uff.py ./
 python3 convert_to_uff.py models/lenet5.pb
+
+# or
+python3 pb_to_uff.py
 ```
 
 # 3、推理计算
