@@ -1,9 +1,7 @@
 """
 使用cupy加载权重文件，实现分类
-
 # For CUDA 10.0
 pip install cupy-cuda100
-
 # For CUDA 10.1
 pip install cupy-cuda101
 """
