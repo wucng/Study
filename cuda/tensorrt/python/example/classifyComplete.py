@@ -154,6 +154,58 @@ class MyDensenet(nn.Module):
         out = self.classifier(out)
         return out
 
+class LossFunc(object):
+    """
+    自定义loss 函数
+    """
+    def __init__(self,num_classes=10,reduction="mean",esp = 1e-5):
+        self.num_classes = num_classes
+        self.reduction = reduction
+        self.esp = esp
+
+    def focal_cross_entropy(self, input, target, alpha=None, gamma=2):
+        # 转one-hot
+        if target.ndim == 1:
+            target = torch.eye(self.num_classes, self.num_classes,device=target.device)[target]
+
+        # loss = -target*torch.log_softmax(input,-1)
+        if alpha is None:
+            alpha = torch.ones(self.num_classes, dtype=target.dtype, device=target.device)
+        else:  # alpha = [1,0.5,...], len(alpha) = num_classes
+            alpha = torch.as_tensor(alpha, dtype=target.dtype, device=target.device)
+        input = torch.softmax(input, -1)
+        loss = -alpha * (1 - input) ** gamma * target * torch.log(input)
+
+        if self.reduction == "sum":
+            loss = torch.sum(loss)
+        elif self.reduction == "mean":
+            loss = torch.mean(loss)
+        else:
+            raise ("reduction must in [sum,mean]")
+
+        return loss
+
+    def focal_mse(self, input, target, alpha=None, gamma=2):
+        # 转one-hot
+        if target.ndim == 1:
+            target = torch.eye(self.num_classes, self.num_classes,device=target.device)[target]
+        input = torch.softmax(input, -1)
+        # loss = (input-target)**2
+        if alpha is None:
+            alpha = torch.ones(self.num_classes, dtype=target.dtype, device=target.device)
+        else:  # alpha = [1,0.5,...], len(alpha) = num_classes
+            alpha = torch.as_tensor(alpha, dtype=target.dtype, device=target.device)
+
+        loss = alpha * (1 - input) ** gamma * (input - target) ** 2
+        if self.reduction == "sum":
+            loss = torch.sum(loss)
+        elif self.reduction == "mean":
+            loss = torch.mean(loss)
+        else:
+            raise ("reduction must in [sum,mean]")
+        return loss
+
+
 class History():
     epoch = []
     history = {"loss": [], "acc": [], "val_loss": [], "val_acc": []}
@@ -175,8 +227,16 @@ class History():
 class ClassifyModel(nn.Module):
     def __init__(self):
         super(ClassifyModel,self).__init__()
-        self.num_classes = 10
-        self.epochs = 2
+        # 每个类别对应的样本数
+        nums_example=[1035,273,828,215,378,226,950,278,288,360,691,464,232,1212,2119,223]
+        # 转成类别权重，样本数越少权重越大 使用 e^(-x)
+        nums_example = np.asarray(nums_example)
+        nums_example = (nums_example-np.min(nums_example))/(np.max(nums_example)-np.min(nums_example))
+        nums_example = np.exp(-1*nums_example)
+        self.weights = nums_example/np.sum(nums_example)*100
+
+        self.num_classes = 16 # 10
+        self.epochs = 10
         self.droprate = 0.3
         self.batch_size = 32
         self.test_batch_size = 64
@@ -186,17 +246,17 @@ class ClassifyModel(nn.Module):
         torch.manual_seed(seed)
         kwargs = {'num_workers': 5, 'pin_memory': True} if self.use_cuda else {}
 
-        base_dir = "/media/wucong/work/practice/data/tomato"
+        base_dir = "./datas/tomato2"
         normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                          std=[0.229, 0.224, 0.225])
 
         train_transformations = transforms.Compose([
-            transforms.Resize(256),
+            transforms.Resize((256,256)),
             transforms.RandomChoice([
-                transforms.Resize(224),
-                transforms.RandomResizedCrop(224),
-                transforms.RandomCrop(224),
-                transforms.CenterCrop(224)
+                transforms.Resize((224,224)),
+                transforms.RandomResizedCrop((224,224)),
+                transforms.RandomCrop((224,224)),
+                transforms.CenterCrop((224,224))
             ]),
             transforms.RandomApply([
                 transforms.RandomHorizontalFlip(),
@@ -214,8 +274,8 @@ class ClassifyModel(nn.Module):
         ])
 
         test_transformations = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            transforms.Resize((256,256)),
+            transforms.CenterCrop((224,224)),
             transforms.ToTensor(),  # 转成0.～1.
             # transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
             normalize
@@ -238,8 +298,9 @@ class ClassifyModel(nn.Module):
 
         # load model
         # self.network = MyResnet(self.num_classes, "resnet18", 512, True, self.droprate)
-        # self.network = MyResnet(self.num_classes, "resnet50", 2048, True, self.droprate)
-        self.network = MyMnasnet(self.num_classes, "mnasnet0_5", 1280, True, self.droprate)
+        self.network = MyResnet(self.num_classes, "resnet50", 2048, True, self.droprate)
+        # self.network = MyMnasnet(self.num_classes, "mnasnet1_0", 1280, True, self.droprate)
+        # self.network = MyDensenet(self.num_classes, "densenet121", 1024, True, self.droprate)
 
         if self.use_cuda:
             self.network.to(self.device)
@@ -266,6 +327,9 @@ class ClassifyModel(nn.Module):
             state_dict = torch.load(self.save_model)
             self.network.load_state_dict({k: v for k, v in state_dict.items() if k in self.network.state_dict()})
 
+        # 自定义loss
+        self.lossFunc = LossFunc(self.num_classes,"sum")
+
     def forward(self):
         for epoch in range(self.epochs):
             train_acc, train_loss = self.__train(epoch)
@@ -284,7 +348,7 @@ class ClassifyModel(nn.Module):
             self.history.history["val_acc"].append(test_acc)
 
         # 保存json文件
-        json.dump(self.history, open("result.json", "w"))
+        json.dump(self.history.history, open("result.json", "w"))
 
         # 打印训练结果
         self.history.show_final_history(self.history)
@@ -299,7 +363,10 @@ class ClassifyModel(nn.Module):
                 data, target = data.to(self.device), target.to(self.device)
             self.optimizer.zero_grad()
             output = self.network(data)
-            loss = F.cross_entropy(output, target, reduction="sum")
+            # loss = F.cross_entropy(output, target, reduction="sum")
+            loss = self.lossFunc.focal_cross_entropy(output,target,self.weights)
+            # loss = self.lossFunc.focal_mse(output,target,self.weights)
+
             train_loss += loss.item()
             loss /= len(data)
             loss.backward()
@@ -336,8 +403,8 @@ class ClassifyModel(nn.Module):
         with torch.no_grad():
             for data, target in self.test_loader:
                 if self.use_cuda:
-                    data, target = data.to(device), target.to(device)
-                output = model(data)
+                    data, target = data.to(self.device), target.to(self.device)
+                output = self.network(data)
                 # test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
                 test_loss += F.cross_entropy(output, target, reduction="sum").item()  # sum up batch loss
                 pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
