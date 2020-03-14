@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>后台数据传递到前端</title>
+
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+{#    <script src="http://cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>#}
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script src="{{ url_for("static",filename="js/zlajax.js") }}"></script>
+    <link href="{{ url_for("static",filename="js/sweetalert/sweetalert.css") }}" rel="stylesheet">
+    <script src="{{ url_for("static",filename="js/sweetalert/sweetalert.min.js") }}"></script>
+    <script src="{{ url_for("static",filename="js/sweetalert/zlalert.js") }}"></script>
+
+
+    <script>
+        $(function () {
+            // #+id名，.+class名 获取控件
+            $("#btn-get").click(function (event) {
+                // event.preventDefault：阻止按钮的默认行为
+                event.preventDefault();
+
+                $.get({ {#zlajax.get#}
+                    'url': '/success/',
+                    'data': {
+
+                    },
+                    'success': function (data) {
+                        if(data['code'] == 200){
+                            {#alert(data);#}
+                            zlalert.alertSuccessToast('获取成功！');
+                            $("#p-get").html(data["message"]);
+                            $("#p-get").show();
+                        }else{
+                            zlalert.alertInfo(data['message']);
+                        }
+                    },
+                    'fail': function (error) {
+                        {#alert(error);#}
+                        {#console.log(error);#}
+                        zlalert.alertNetworkError();
+                    }
+                });
+            });
+        });
+    </script>
+
+
+</head>
+<body>
+    <div>
+        <p>使用用全局变量g，将后台数据传递到前端</p>
+        {{ g.username }}
+    </div>
+
+    <div>
+        <p>使用用session，将后台数据传递到前端</p>
+        {{ session.username }}
+    </div>
+
+    <div>
+        <p>使用上下文钩子函数，将后台数据传递到前端</p>
+{#        {{ cont.code }}#}
+{#        {{ cont.message }}#}
+{#        {{ cont.data }}#}
+        {% for k,v in cont.items() %}
+            {{ k }}:{{ v }}
+        {% endfor %}
+
+    </div>
+
+    <div>
+        <p>使用模板传参方式，将后台数据传递到前端</p>
+        {{ data }}
+    </div>
+    
+    <div>
+        {# 使用url_for 将静态文件传递到前端 #}
+        <img src="{{ url_for("static",filename="logo.png") }}" style="width:90px;height: 90px;">
+    </div>
+
+    <div>
+        {# 跳转到endpoint=success对应的函数 #}
+        <a href="{{ url_for("success") }}">主页</a>
+    </div>
+
+    <div>
+        {# 使用ajax获取后台数据，将后台数据传递到前端  #}
+        <input type="button" id="btn-get" value="点击">
+        <p id="p-get" style="display:none;color:red;"></p>
+        <script>
+
+        </script>
+    </div>
+
+</body>
+</html>
