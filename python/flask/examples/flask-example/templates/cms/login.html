@@ -1,0 +1,76 @@
+{% extends "cms/base.html" %}
+
+{% block title %}
+    CMS登录系统
+{% endblock %}
+
+{% block head %}
+{#    <link href="{{ url_for("static",filename="cms/signin.css") }}" rel="stylesheet">#}
+    <script src="{{ url_for("static",filename="cms/login.js") }}"></script>
+{% endblock %}
+
+{#
+{% block main_content %}
+    <div class="container">
+
+      <form class="form-signin">
+        <h2 class="form-signin-heading">请登录</h2>
+
+        <table style="width: 300px;border-collapse: collapse;">
+            <tbody>
+                <tr>
+                    <td>
+                        <label>账号：</label>
+                    </td>
+                    <td>
+                        <input type="email" id="inputEmail" class="form-control" placeholder="用户名/手机/邮箱" required autofocus>
+                    </td>
+                </tr>
+                <tr></tr>
+                <tr>
+                    <td>
+                        <label>密码：</label>
+                    </td>
+                    <td>
+                        <input type="password" id="inputPassword" class="form-control" placeholder="密码" required>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- <label for="inputEmail" class="sr-only">Email address</label> -->
+
+        <!-- <label for="inputPassword" class="sr-only">Password</label> -->
+
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" value="1" id="remember"> 记住我
+          </label>
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">立即登录</button>
+      </form>
+
+    </div> <!-- /container -->
+{% endblock %}
+#}
+
+{% block main_content %}
+    <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+        <input type="text" class="form-control" name="telephone" placeholder="手机号码">
+    </div>
+    <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+        <input type="password" class="form-control" name="password" placeholder="密码">
+    </div>
+    <div class="checkbox" style="margin: auto;width: 300px;padding-top: 10px">
+        <label>
+            <input type="checkbox" name="remember" value="1">记住我
+        </label>
+    </div>
+    <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+        <button class="btn btn-warning btn-block" id="submit-btn">立即登录</button>
+    </div>
+    <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+        <a href="{{ url_for("cms.logup") }}" class="signup-link">没有账号？立即注册</a>
+        <a href="#" class="resetpwd-link" style="float:right;">找回密码</a>
+    </div>
+{% endblock %}

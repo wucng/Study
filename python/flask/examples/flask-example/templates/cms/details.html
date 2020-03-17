@@ -1,0 +1,101 @@
+{% extends "cms/base.html" %}
+
+{% block title %}
+    个人信息页面
+{% endblock %}
+
+{% block head %}
+    <style>
+        {#body{text-align: center}#}
+        .div{margin: 0 auto;width: 700px}
+        table,table tr th, table tr td { border:2px solid #0094ff;text-align: center;width: 700px}
+        {#table { width: 200px; min-height: 25px; line-height: 25px; text-align: center; border-collapse: collapse;}#}
+        .modal-dialog{aria-hidden:true}
+    </style>
+    <script src="{{ url_for("static",filename="cms/delete.js") }}"></script>
+    <script src="{{ url_for("static",filename="cms/addUser.js") }}"></script>
+{% endblock %}
+
+{% block main_content %}
+
+    <h1 style="text-align: center">{{ self.title() }}</h1>
+    <br>
+    <br>
+
+    <!-- Button trigger modal -->
+    <div style="padding-left: 700px">
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+          添加用户
+        </button>
+    </div>
+    <br>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">添加信息</h4>
+          </div>
+          <div class="modal-body">
+
+            <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+                <input type="text" class="form-control" name="telephone" placeholder="手机号码">
+            </div>
+            <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+                <input type="text" class="form-control" name="email" placeholder="邮箱">
+            </div>
+            <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+                <input type="text" class="form-control" name="username" placeholder="用户名">
+            </div>
+            <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+                <input type="password" class="form-control" name="password" placeholder="密码">
+            </div>
+            <div class="form-group" style="margin: auto;width: 300px;padding-top: 10px">
+                <input type="password" class="form-control" name="password2" placeholder="确认密码">
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            <button type="button" class="btn btn-primary" id="save-btn">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="div">
+        <table>
+            <tbody>
+                <tr>
+                    <th>id</th>
+                    <th>手机号</th>
+                    <th>邮箱</th>
+                    <th>用户名</th>
+                    <th>权限</th>
+                    <th>创建时间</th>
+                    <th>命令</th>
+                </tr>
+                {% for user in users %}
+                <tr>
+                    <td>{{ loop.index0 }}</td>
+                    <td>{{ user.telephone }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.premission }}</td>
+                    <td>{{ user.join_time }}</td>
+{#                    <td>#}
+{#                        <a href="#">修改</a>#}
+{#                        <a href="{{ url_for("cms.delete",telephone=user.telephone) }}">删除</a>#}
+{#                    </td>#}
+                    <td>
+                        <label style="cursor: pointer" id="modify" content="{{ user.telephone }}">修改</label>
+                        <label style="cursor: pointer" id="delete" content="{{ user.telephone }}">删除</label>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
